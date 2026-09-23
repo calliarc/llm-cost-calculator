@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/calliarc/llm-cost-calculator/data/pricing.schema.json",
+  "title": "LLM pricing data",
+  "description": "List prices for LLM APIs, in USD per 1M tokens. Every entry must come from an official provider pricing page.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["currency", "unit", "models"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "currency": { "const": "USD" },
+    "unit": { "const": "per_1m_tokens" },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/model" }
+    }
+  },
+  "$defs": {
+    "price": { "type": "number", "minimum": 0 },
+    "nullablePrice": {
+      "oneOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }]
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model_id",
+        "display_name",
+        "input",
+        "output",
+        "cached_input",
+        "batch_input",
+        "batch_output",
+        "batch_cached_input",
+        "source_url",
+        "last_verified"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Provider name as shown in the UI, e.g. OpenAI."
+        },
+        "model_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._@:-]*$",
+          "description": "The provider's model identifier."
+        },
+        "display_name": { "type": "string", "minLength": 1 },
+        "input": {
+          "$ref": "#/$defs/price",
+          "description": "Standard input price per 1M tokens."
+        },
+        "output": {
+          "$ref": "#/$defs/price",
+          "description": "Standard output price per 1M tokens."
+        },
+        "cached_input": {
+          "$ref": "#/$defs/nullablePrice",
+          "description": "Cached input (cache hit) price per 1M tokens, or null if the provider offers no caching discount."
+        },
+        "batch_input": {
+          "$ref": "#/$defs/nullablePrice",
+          "description": "Batch API input price per 1M tokens, or null if there is no batch discount."
+        },
+        "batch_output": {
+          "$ref": "#/$defs/nullablePrice",
+          "description": "Batch API output price per 1M tokens, or null if there is no batch discount."
+        },
+        "batch_cached_input": {
+          "$ref": "#/$defs/nullablePrice",
+          "description": "Cached input price in batch mode, or null if not listed (the standard cached rate is then used)."
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "description": "Official provider page the prices were taken from."
+        },
+        "last_verified": {
+          "type": "string",
+          "format": "date",
+          "description": "Date (YYYY-MM-DD) someone last checked the prices against source_url."
+        },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
